@@ -126,3 +126,77 @@ $ curl http://<host>:8080/api/cart/metrics
 $ curl http://<host>:8080/api/payment/metrics
 ```
 
+---
+
+## Capstone 2 — Kubernetes Observability
+
+### Project Overview
+
+This project deploys the Instana Robot Shop microservices application on a local Kind Kubernetes cluster using Helm, with Prometheus and Grafana for monitoring.
+
+### Technologies Used
+
+- Docker Desktop
+- Kubernetes (Kind)
+- Helm
+- Prometheus
+- Grafana
+- Prometheus Operator and ServiceMonitor
+
+### Completed Implementation
+
+1. Deployed all 12 Robot Shop components in the `robot-shop` namespace.
+2. Removed Instana-specific configuration from six Helm deployment templates.
+3. Installed Prometheus and Grafana in the `monitoring` namespace.
+4. Configured Prometheus resource settings in `monitoring/prometheus-values.yaml`.
+5. Created a ServiceMonitor for Cart and Payment.
+6. Verified application metrics in Grafana Explore.
+
+### Verified Application Metrics
+
+| Service | Metric | Purpose |
+|---|---|---|
+| Cart | `items_added` | Counts items added to carts |
+| Payment | `sold_count_total` | Counts items sold |
+| Payment | `units_sold` | Records units sold |
+| Payment | `cart_value` | Records cart values |
+
+### Reproduce the Monitoring Setup
+
+Install the monitoring stack:
+
+`helm upgrade --install monitoring prometheus-community/kube-prometheus-stack -n monitoring --create-namespace -f monitoring/prometheus-values.yaml`
+
+Configure application monitoring:
+
+`kubectl label svc cart payment -n robot-shop monitoring=robot-shop --overwrite`
+
+`kubectl apply -f monitoring/robot-shop-servicemonitor.yaml`
+
+Access Grafana:
+
+`kubectl port-forward -n monitoring svc/monitoring-grafana 3000:80`
+
+Open `http://localhost:3000`.
+
+### Prometheus Verification Queries
+
+- `up{namespace="robot-shop"}`
+- `items_added`
+- `sold_count_total`
+
+### Outstanding Requirements
+
+The following components have not yet been implemented or verified:
+
+- Request rate, error rate, and latency dashboard for all four focus services
+- Load generation
+- Centralized logging using Fluent Bit and Loki
+- Distributed tracing using OpenTelemetry and Jaeger
+- SLO and error-budget policy
+- Slack alert integration
+- Incident simulation, postmortem, and operational runbook
+
+### Limitations
+
+The deployment runs on a local Kind cluster. Application-level Prometheus metrics have been verified for Cart and Payment, but full observability across all four focus services remains incomplete.
