@@ -1,6 +1,6 @@
 import random
 
-import instana
+# import instana  # Disabled to avoid conflicting tracer providers
 import os
 import sys
 import time
@@ -19,6 +19,31 @@ import prometheus_client
 from prometheus_client import Counter, Histogram
 
 app = Flask(__name__)
+# OpenTelemetry distributed tracing
+from opentelemetry import trace
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
+
+resource = Resource.create({"service.name": "payment"})
+
+provider = TracerProvider(resource=resource)
+
+exporter = OTLPSpanExporter(
+    endpoint=os.getenv(
+        "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
+        "http://jaeger.monitoring.svc.cluster.local:4318/v1/traces"
+    )
+)
+
+provider.add_span_processor(BatchSpanProcessor(exporter))
+trace.set_tracer_provider(provider)
+
+FlaskInstrumentor().instrument_app(app)
+RequestsInstrumentor().instrument()
 app.logger.setLevel(logging.INFO)
 
 CART = os.getenv('CART_HOST', 'cart')
