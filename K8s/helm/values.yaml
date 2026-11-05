@@ -44,6 +44,7 @@ mongodb: {}
 mysql: {}
 
 payment:
+  imageTag: otel-v2
   # Alternative payment gateway URL
   # Default is https://www.paypal.com
   gateway: null

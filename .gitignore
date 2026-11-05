@@ -3,3 +3,6 @@
 *-private.*
 vendor/
 Gopkg.lock
+# Python-generated files
+__pycache__/
+*.pyc
