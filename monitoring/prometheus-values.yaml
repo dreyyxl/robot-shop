@@ -20,7 +20,7 @@ prometheus:
         cpu: 500m
 
 alertmanager:
-  enabled: false
+  enabled: true
 
 kubeStateMetrics:
   enabled: false

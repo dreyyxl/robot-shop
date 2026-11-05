@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: robot-shop-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: robot-shop.rules
+      rules:
+        - alert: RobotShopPaymentDown
+          expr: |
+            (up{namespace="robot-shop",service="payment"} == 0)
+            or
+            absent(up{namespace="robot-shop",service="payment"})
+          for: 1m
+          labels:
+            severity: critical
+            service: payment
+          annotations:
+            summary: "Robot Shop Payment service is down"
+            description: "Prometheus cannot scrape the Robot Shop Payment service for at least one minute."
